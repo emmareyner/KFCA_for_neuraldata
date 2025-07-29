@@ -1,0 +1,9 @@
+Added some tools to display matrices, plots and run examples.
+--This line, and those below, will be ignored--
+
+D    +fca/apps
+M    +fca/+mmp/+apps/run_example.m
+A  + +fca/+apps
+A  + +fca/+apps/display_mat.m
+A  + +fca/+apps/read_labels.m
+A  + +fca/+apps/latex_mat.m

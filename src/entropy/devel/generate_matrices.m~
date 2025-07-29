@@ -1,0 +1,47 @@
+function [C, T, P]=generate_matrices(nvec,k);
+
+%Produces the indexes for the generation of every possible matrix of size
+%kxk with input counts nvec.
+% nvec: is a vector specifying the sum of the nth row of the matrix (counts
+%of the input distribution)
+% k: is the dimension of the matrices (square)
+% C: is a cell array of k matrices each with the weak composition of 
+%k intergers that sum each element of nvec
+% T: is a vector containing the number of possible combinations of each
+% weak composition
+% P: each row of p is a vector of indexes for the selection of all possible
+% rows from the k matrices of C
+%
+% Example: [C, T, P]=generate_matrices([2 3]',2) generates all possible 2x2
+% matrices distributing 5 samples: 2 in the first input class, 3
+% in the second.
+
+
+if size(nvec,1)~=k
+    disp('Error')
+end
+
+%First compute the weak compositions for each element of the nvec (the
+%input distribution)
+for i=1:k
+    C{i}=WeakComp(nvec(i),k);
+    T(i)=size(C{i},1);
+    inputpars{i}=1:T(i);
+end
+%Now we need the cartesian product of the rows of the k matrices generated.
+
+Total=prod(T);
+P = combinations(inputpars{:});
+
+%To generate all the possible matrices (not done here to avoid using too
+%much space.
+
+% for i=1:Total
+%     M{i}=zeros(k,k);
+%     for j=1:k
+%         M{i}(j,:)=C{j}(P(i,j),:);
+%     end
+%     M{i}
+% end
+
+%nvec puede generarse también invocando WeakComp

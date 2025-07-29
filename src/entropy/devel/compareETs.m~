@@ -1,0 +1,382 @@
+function [] = compareETs(C,etags,tags,names,expName)
+% [] = compareETs(C)
+% [] = compareETs(C,tags)
+% [] = compareETs(C,tags,names)
+% [] = compareETs(C,tags,names,expName)
+%
+% Takes an array of confusion matrices [C], with [tags], works out the 
+% entropy triangles:
+% - in the given order, then 
+% - in accuracy order, then 
+% - in descending normalized information transfer factor order. 
+%
+% It ends up giving all heatmaps of the confusion matrices, if possible.
+%
+% As an intermediate step it provides the perplexity information in the
+% matrices. 
+% 
+% By default if also provides a latex-able table of values of the confusion
+% matrices and perplexities, 
+error(nargchk(1, 4, nargin));
+%colormap('default');%Colormap seems to be unstable each time it is used.
+colormap('bone');%Colormap seems to be unstable each time it is used.
+if iscell(C)
+    M=length(C);%%Number of confusions matrices in array.
+else
+    error('entropy:compareETs','parameter C must be a cell array of matrices');
+end
+if nargin > 1
+    if iscell(tags)
+        nTags=length(tags);
+    else
+        error('entropy:compareETs','parameter [tags] must be a cell array of strings');        
+    end
+else
+    nTags=length(C{M});
+    tags=cell(nTags,1);%The tags for each class
+    for i=1:nTags
+        tags{i}=sprintf('tag %s',i);
+    end
+end
+%Processing the list of names...
+if nargin > 2
+    numNames = length(names);
+    if not(iscellstr(names))
+        error('entropy:compareETs','parameter [names] must be a cell array of strings');
+    elseif (numNames == 0)%this is just to let an exp name be given
+        exp
+    elseif (length(names) ~= M)
+        M = length(names);
+        warning('entropy:compareETs','truncating experiments to the named sublist');
+    end
+    texnames = names;
+else
+    texnames=cell(M,1);
+    names=cell(M,1);
+    for i=1:M,
+        names{i}=sprintf('C_%d',i);
+        texnames{i}=sprintf('$C_{%d}$',i);
+    end
+end
+%% PRocessing the name of the experiment
+if nargin > 3
+    if not(ischar(expName))
+        error('entropy:compareETs','parameter [expName] must be a string'); 
+    end
+else
+    expName = 'Classfrs.';
+end
+
+%% Work out the triangles and their information decomposition
+SPLIT=false;
+%SPLIT=true;
+%map2=colormap(copper);
+%map3=colormap(cool); %winter
+%map4=colormap(hot); %autumn
+%map=[map2; map3; map4];
+colormap(copper);
+
+%%% Numbers related to perplexity
+%nmuXY=zeros(M,1);%%normalized mutual information in natural units
+
+%% Calculo de las entropias basado en entropic_split
+[nVI,nDHpxpy,n2MI,nVIx,nVIy,nDHpx,nDHpy,Hux,Huy]=coordinates(C);
+% ENTROPIC_SPLIT = true;
+% ENTROPIC_SPLIT = false;
+% if (ENTROPIC_SPLIT) 
+%     for i=1:M
+%         [n m] = size(C{i});%%Caveat! We SHOULD check this carefully
+%         Hux = log2(n);
+%         Huy = log2(m);
+%         figure(1)
+%         acc(i)=sum(diag(C{i}))/sum(sum(C{i}));
+%         %We cannot avoid the calculus of all the variables in entropic_split
+%         %since we need nmuXY for the third plot.
+%         %if SPLIT%Remember n2MI has only MI, not 2*MI when triangle is split!!!
+%         [nVI(i),nDHpxpy(i),n2MI(i),nVIx(i),nVIy(i),nDHpx(i),nDHpy(i)]=entropic_split(C{i});%NORMALISED!
+%         %else
+%         %    [nVI(i),nDHpxpy(i),n2MI(i)]=entropic(C{i});
+%         %end
+%     end
+[muXY,nxy,myx,nx,my,nmuXY] = perplexities2(n2MI,nVIx,nVIy,nDHpx,nDHpy,Hux,Huy);
+N = cellfun(@(c) sum(sum(c)),C);
+theseDiag = cellfun(@(c) sum(diag(c)), C);
+%acc=zeros(M,1);
+acc = theseDiag./N;
+%plot by accuracies
+%CEN and MCC calculus:
+for m=1:M
+    [cen(m),mcc(m)]=cen_mcc(C{m})
+end
+
+%% Print out the information in a table
+PRINT_TABLE=true;
+%PRINT_TABLE=false;
+if (PRINT_TABLE)
+    [kk,thisIndex] = sort(acc,'descend');
+    if size(thisIndex,1)~=1
+        thisIndex=thisIndex';
+    end
+    %\usepackage{PrintTable}
+    %l = max(max(cellfun(@length,names)), length('Experiment'));
+    %expTag = 'Conf. Mat.';
+    expTag = expName;
+    l = max(max(cellfun(@length,names)), length(expTag));
+    %form = ['%' sprintf('%ds',l)];
+    form = '%s';%Solve issues with field lengths in formatted visualizations
+    formExpTag = sprintf(form,expTag);
+    % for i=1:M
+    %     fprintf([form '%.2f\t%1.3f\t%1.3f\t%1.3f\t%1.3f\t%1.3f\t%1.3f\n'],...
+    %         names{i},acc(i),nx(i),nxy(i),myx(i),my(i),nmuXY(i),nmuXY(i)*nx(i));
+    % end
+    t = PrintTable;%No caption supplied now: see end of printing mechanism
+    t.HasRowHeader = true;
+    t.HasHeader = true;
+    t.addRow(formExpTag, '$k_X$','$k_{X|Y}$','$\mu_{XY}$','$a(P_{XY})$','$a''(P_{XY})$','$q_X(P_{XY})$', '$1-CEN$','$MCC$');
+    % header = [formExpTag '\tAcc\tn_x\tn_xy\tm_yx\tm_y\tnmuXY\talt_nmuXY\n'];%Change experiment to adequate tag...
+    % fprintf(header);
+    for i=thisIndex%
+    %    for i=1:M
+        %     fprintf([form '\t%.2f\t%1.3f\t%1.3f\t%1.3f\t1.3f\t%1.3f\t%1.3f\t%1.3f\n'],...
+        %         names{i},acc(i),nx(i),n2MI(i),nxy(i),myx(i),my(i),nmuXY(i),1/nxy(i));
+        %Adding rows with custom format for each label
+        t.addRow(...
+            texnames{i},nx(i),nxy(i),muXY(i),acc(i),1/nxy(i), nmuXY(i), 1-cen(i), mcc(i),...
+            {form,'%.3f','%1.3f','%1.3f','%1.3f','%1.3f','%1.3f','%1.3f','%1.3f'})
+    end
+    t.Caption = sprintf(['Perplexities, accuracy $a(P_{XY})$, modified accuracy $a''(P_{XY})$ ' ...
+        'and normalised information transfer factor $q_X(P_{XY})$ for %s confusion matrices.'], expName);
+    %Can we generate normal output?
+    t.print;
+    %Generate the tex output
+    t.Format = 'tex';
+    t.print;
+end 
+
+%% Define labels for the ternary plot
+
+%labs for the split plot
+clabs = '$${H''}_{P_{X|Y}}, {H''}_{P_{Y|X}}$$';
+alabs = '$$\Delta \emph{{H''}}_{P_X}, \Delta \emph{{H''}}_{P_Y}$$';
+blabs = '$$\emph{{MI''}}_{P_{XY}}$$';
+
+%labels for the un-split plot
+clab = '$${VI''}_{P_{XY}}$$';
+alab = '$$\Delta \emph{H''}_{P_X \cdot P_Y}$$';
+blab = '$$2\times {MI''}_{P_{XY}}$$';
+
+
+%% representation based in ordering due to precision (Accuracy?)
+
+%Adjust colormap to have M dimensions
+%jet_adj=jet;
+%(1:floor(64/M):M*floor(64/M)+1,:);
+colormap(jet(M))
+%colormap(hsv(M))
+%colormap(copper(M))%too dark scale.
+%colormap(bone(M))%Problem: highest c has white-on-white marker.
+%colormap(autumn(M))
+
+%CPM: Back to the primitives in +ternary 
+%terplot;
+%Takes default values for ticks and labels
+ternary.axes(10,'fraction');
+if SPLIT
+%    ternary.label('$$H_{P_{X | Y}}/ H_{P_{Y | X}}$$', '$$\Delta_{P_X}/ \Delta_{P_Y}$$', 'MI_{P_{XY}}');
+    ternary.label(alabs,blabs,clabs);
+else
+%    ternary.label('$$VI_{P_{XY}}$$','$$\Delta H_{P_{XY}}$$','$$2MI_{P_{XY}}$$');
+    ternary.label(alab,blab,clab);
+end
+
+%prevent the entropy triangle to be over bloated with dots
+if (M > 100) 
+    mainMsize = 4;
+    splitMsize = 1;
+else
+    mainMsize = 7;
+    splitMsize = 4;
+end
+%h=ternaryc(nVI,nDHpxpy,n2MI,names);
+%h=ternaryc(nVI,nDHpxpy,n2MI,1:M);
+%h=ternary.plotbar(nVI,nDHpxpy,n2MI,names);
+%set(h,'markersize',7,'marker','s')%This square is too big and obscures conflating results?
+%?h=ternary.plotbar(nDHpxpy,n2MI,nVI,(1:M),'markersize',7,'marker','s');
+irank=fliplr(1:M);%present info from first to last
+h=ternary.plotbar(nDHpxpy(irank),n2MI(irank),nVI(irank),names(irank),'markersize',mainMsize,'marker','d');
+
+if SPLIT
+    hold on
+%    h=ternaryc(nVIx,nDHpx,n2MI,1:M);
+    %h=ternaryc(nVIx,nDHpx,n2MI,names);
+    h=ternary.plotbar(nDHpx(irank),n2MI(irank),nVIx(irank),names(irank),'markersize',splitMsize,'marker','x');
+    %set(h,'markersize',4,'marker','x')
+    %ternary.plot(DeltaH_Px,EMI_Pxy,VI_X,c{:},'Marker','x','MarkerSize',msize);%input entropies
+    hold on
+%    h=ternaryc(nVIy,nDHpy,n2MI,1:M);
+    %h=ternaryc(nVIy,nDHpy,n2MI,names);
+    h=ternary.plotbar(nDHpy(irank),n2MI(irank),nVIy(irank),names(irank),'markersize',splitMsize,'marker','o');
+    %set(h,'markersize',4,'marker','o')
+    
+    %set(hcb,'ylim',[1 length(map)]);
+    %yal=linspace(0,1,21);
+    %set(hcb,'ytick',yal);
+    %ternary.plot(DeltaH_Py,EMI_Pxy,VI_Y,c{:},'Marker','o','MarkerSize',msize);%Output entropies
+    hold off
+end
+
+
+%% Same as in figure 1 but with the colourmap representing the accuracy
+figure(2)
+colormap('default')
+%colormap(autumn)
+colormap(winter)
+%colormap(summer)
+colormap(jet)
+%colormap(cool)
+%colormap(copper)
+%colormap(hot)%%needs scaling so that 100% corresponds with white
+ternary.axes(10,'fraction');
+%terplot;
+if SPLIT
+    %terlabel('H_{P_{X | Y}}/ H_{P_{Y | X}}', '\Delta_{P_X}/ \Delta_{P_Y}', 'MI_{P_{XY}}');
+    ternary.label(alabs,blabs,clabs);
+else
+    %terlabel('VI_{P_{XY}}','\Delta H_{P_{XY}}','2MI_{P_{XY}}'); %#ok<*UNRCH>
+    ternary.label(alab,blab,clab);
+end
+% h=ternaryc(nVI,nDHpxpy,n2MI,acc);
+% set(h,'markersize',7,'marker','o')%This square is too big and obscures conflating results
+h=ternary.plotbar(nDHpxpy,n2MI,nVI,acc,'markersize',mainMsize,'marker','d');
+if SPLIT
+    hold on
+%     h=ternaryc(nVIx,nDHpx,n2MI,acc);
+%     set(h,'markersize',4,'marker','x')
+    h=ternary.plotbar(nDHpx,n2MI,nVIx,acc,'markersize',splitMsize,'marker','x');
+    %ternary.plot(DeltaH_Px,EMI_Pxy,VI_X,c{:},'Marker','x','MarkerSize',msize);%input entropies
+    hold on
+%     h=ternaryc(nVIy,nDHpy,n2MI,acc);
+%     set(h,'markersize',4,'marker','o')
+    h=ternary.plotbar(nDHpy,n2MI,nVIy,acc,'markersize',splitMsize,'marker','o');
+    %ternary.plot(DeltaH_Py,EMI_Pxy,VI_Y,c{:},'Marker','o','MarkerSize',msize);%Output entropies
+    hold off
+end
+title('Colour according to Acc');
+
+%% Same as in figure 1 but with colourmap representing EMA
+figure(3)
+%colormap(jet)
+colormap('default')
+colormap(copper)
+colormap(jet)
+% Set the ER view on plot
+ternary.axes(10,'fraction');
+%terplot;
+if SPLIT
+    %terlabel('H_{P_{X | Y}}/ H_{P_{Y | X}}', '\Delta_{P_X}/ \Delta_{P_Y}', 'MI_{P_{XY}}');
+    ternary.label(alabs,blabs,clabs);
+else
+    %terlabel('VI_{P_{XY}}','\Delta H_{P_{XY}}','2MI_{P_{XY}}'); %#ok<*UNRCH>
+    ternary.label(alab,blab,clab);
+end
+% h=ternaryc(nVI,nDHpxpy,n2MI,nmuXY);
+% %set(h,'markersize',11,'marker','s')%This square is too big and obscures conflating results
+% set(h,'markersize',7,'marker','d')%marker=empty circle
+h=ternary.plotbar(nDHpxpy,n2MI,nVI,1./nxy,'markersize',mainMsize,'marker','d');
+if SPLIT
+    hold on
+%     h=ternaryc(nVIx,nDHpx,n2MI,nmuXY);
+%     set(h,'markersize',4,'marker','+')
+    h=ternary.plotbar(nDHpx,n2MI,nVIx,1./nxy,'markersize',splitMsize,'marker','x');
+    hold on
+%     h=ternaryc(nVIy,nDHpy,n2MI,nmuXY);
+%     set(h,'markersize',4,'marker','o')
+    h=ternary.plotbar(nDHpy,n2MI,nVIy,1./nxy,'markersize',splitMsize,'marker','o');
+    hold off
+end
+title('Colour according to EMA');
+
+%% Same as in figure 1 but with colourmap representing 1-cen (cen ranges [1,0])
+figure(4)
+%colormap(jet)
+colormap('default')
+colormap(copper)
+colormap(jet)
+% Set the ER view on plot
+ternary.axes(10,'fraction');
+%terplot;
+if SPLIT
+    %terlabel('H_{P_{X | Y}}/ H_{P_{Y | X}}', '\Delta_{P_X}/ \Delta_{P_Y}', 'MI_{P_{XY}}');
+    ternary.label(alabs,blabs,clabs);
+else
+    %terlabel('VI_{P_{XY}}','\Delta H_{P_{XY}}','2MI_{P_{XY}}'); %#ok<*UNRCH>
+    ternary.label(alab,blab,clab);
+end
+% h=ternaryc(nVI,nDHpxpy,n2MI,nmuXY);
+% %set(h,'markersize',11,'marker','s')%This square is too big and obscures conflating results
+% set(h,'markersize',7,'marker','d')%marker=empty circle
+h=ternary.plotbar(nDHpxpy,n2MI,nVI,1-cen,'markersize',mainMsize,'marker','d');
+if SPLIT
+    hold on
+%     h=ternaryc(nVIx,nDHpx,n2MI,nmuXY);
+%     set(h,'markersize',4,'marker','+')
+    h=ternary.plotbar(nDHpx,n2MI,nVIx,1-cen,'markersize',splitMsize,'marker','x');
+    hold on
+%     h=ternaryc(nVIy,nDHpy,n2MI,nmuXY);
+%     set(h,'markersize',4,'marker','o')
+    h=ternary.plotbar(nDHpy,n2MI,nVIy,1-cen,'markersize',splitMsize,'marker','o');
+    hold off
+end
+title('Colour according to 1-CEN');
+
+%% Same as in figure 1 but with colourmap representing (mcc+1)/2 (mcc ranges [-1,1])
+figure(5)
+%colormap(jet)
+colormap('default')
+colormap(copper)
+colormap(jet)
+% Set the ER view on plot
+ternary.axes(10,'fraction');
+%terplot;
+if SPLIT
+    %terlabel('H_{P_{X | Y}}/ H_{P_{Y | X}}', '\Delta_{P_X}/ \Delta_{P_Y}', 'MI_{P_{XY}}');
+    ternary.label(alabs,blabs,clabs);
+else
+    %terlabel('VI_{P_{XY}}','\Delta H_{P_{XY}}','2MI_{P_{XY}}'); %#ok<*UNRCH>
+    ternary.label(alab,blab,clab);
+end
+% h=ternaryc(nVI,nDHpxpy,n2MI,nmuXY);
+% %set(h,'markersize',11,'marker','s')%This square is too big and obscures conflating results
+% set(h,'markersize',7,'marker','d')%marker=empty circle
+h=ternary.plotbar(nDHpxpy,n2MI,nVI,(mcc+1)/2,'markersize',mainMsize,'marker','d');
+if SPLIT
+    hold on
+%     h=ternaryc(nVIx,nDHpx,n2MI,nmuXY);
+%     set(h,'markersize',4,'marker','+')
+    h=ternary.plotbar(nDHpx,n2MI,nVIx,(mcc+1)/2,'markersize',splitMsize,'marker','x');
+    hold on
+%     h=ternaryc(nVIy,nDHpy,n2MI,nmuXY);
+%     set(h,'markersize',4,'marker','o')
+    h=ternary.plotbar(nDHpy,n2MI,nVIy,(mcc+1)/2,'markersize',splitMsize,'marker','o');
+    hold off
+end
+title('Colour according to (MCC+1)/2');
+
+%% Finally print the heapmaps
+%pause
+if (M <= 20)
+    figure(6)
+    colormap(jet)
+    for i=1:M
+        if M < 15
+            rows=2;
+        else
+            rows=3;
+        end
+        subplot(rows,ceil(M/rows),i);
+        fca.apps.prettydisplay_confmat(C{i},tags, tags, expName)
+        %imagesc(C{i})
+    end
+end
+
+%fca.apps.prettydisplay_confmat(C{1},tags, tags, expName)

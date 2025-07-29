@@ -1,0 +1,7 @@
+
+En +x y +n se encuentran las codificaciones mejores para maxplus y minplus respectivamente que en principio solo afectan a los double con atributo de storage sparse.
+
+En +l y +u se encuentran las operaciones del calculo hacia arriba y hacia abajo, especificadas *para cualquier tipo de codificacion, presente o venidera*
+
+TODO:
+	@Trisparse es un modelo basado en una codificacion sparse de -Inf, 0 y Inf

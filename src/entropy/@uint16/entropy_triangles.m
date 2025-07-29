@@ -1,0 +1,59 @@
+function [h,H_Pxy, H_Px,H_Py, MI_Pxy]=entropy_triangles(rawcounts,varargin)
+
+[n m] = size(rawcounts);
+
+%Input Pxy is rawcounts: to be changed
+
+[Ixy,Pxy,MI,Hxy] = pmi(rawcounts);
+%[Ixy,Pxy]=explore_pmi(Pxy,h7,1,1);
+
+
+% calculo del índice de variación vs entropy decrements
+[H_Pxy,H_Px,H_Py,MI_Pxy] = entropies(Pxy);
+
+
+%Now build the rest of the triangle variables
+HmaxX = log2(n);
+HmaxY = log2(m);
+Hmax = HmaxX + HmaxY;%same size for all
+DeltaH_Px = HmaxX - H_Px;
+DeltaH_Py = HmaxY - H_Py;
+DeltaH_Pxy = DeltaH_Px + DeltaH_Py;
+VI_X= H_Px - MI_Pxy;
+VI_Y = H_Py - MI_Pxy;
+VI_XY = VI_X + VI_Y;
+%Check integrity of values
+DeltaH_Pxy + VI_XY + 2*MI_Pxy;
+if nargin>1
+    if strcmp(varargin{1},'incremental')
+        h=varargin{2};
+        h1=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,h(1),varargin{3:end});
+        hold on
+        h3=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,h(3),'split','triangle',varargin{3:end});
+        hold on
+        h2=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,h(2),'triangle',varargin{3:end});
+        hold on
+        h=[h1 h2 h3];
+    else
+        h1=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,varargin{:});
+        hold on
+        h3=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,'split','triangle',varargin{:});
+        hold on
+        h2=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,'triangle',varargin{:});
+        hold on
+  
+        h=[h1 h2 h3];
+    end
+else
+    h1=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,varargin{:});
+    hold on
+    h2=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,'triangle',varargin{:});
+    hold on
+    h3=explore_entropies(HmaxX,HmaxY,H_Pxy,H_Px,H_Py,MI_Pxy,'split','triangle',varargin{:});
+    hold on
+    h=[h1 h2 h3];
+end
+
+
+
+

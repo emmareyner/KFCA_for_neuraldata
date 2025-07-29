@@ -1,0 +1,15 @@
+- 24/07/09:
+  - Write documentation for packages.
+  - finish Trisparse class for representing matrices
+  - Write a list of CAVEATS for representation, like don't mix sparse matrices in maxplus and minplus encodings.
+
+- 28/10/2009
+  - All layout objects should be subobjects of @GraphViz or maybe a
+    subpackage +layout.
+  - @network.Graphviz should be a generic class instantiated on classes
+    like boolean and mmp.x.Sparse, because the consideration of what
+    constitutes and "empty" edge depends on the undelying algebra
+    (i.e. 0 or false for boolean matrices, -Inf for mmp.l double
+    matrices, 0 for mmp.Sparse matrices, etc.)
+
+
