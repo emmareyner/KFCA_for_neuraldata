@@ -1,5 +1,0 @@
-Fixed a problem with colormaps that arises when every element of the variable depicted has the same value.
---This line, and those below, will be ignored--
-
-M    devel/ternaryc.m
-M    devel/compareETs.m
