@@ -91,7 +91,8 @@ else
     % conf_mat = I;
 end
 
-% Plotting the cumulative sum of PMI values.
+% Plotting the cumulative sum of PMI values. If PMI has not wanted,
+% this figure does not provide information.
 figure;
 pmi_mat_sin_inf = I;
 pmi_mat_sin_inf(isinf(I)) = 0; % Replace any Inf (infinity) values with 0.

@@ -65,8 +65,8 @@ phr = PM.rlabelset;
 hline = '\\hline\n'; 
 border = '|';
 
-rowtotal = findinvec (totals, 'r');
-coltotal = findinvec (totals, 'c');
+rowtotal = fca.apps.findinvec (totals, 'r');
+coltotal = fca.apps.findinvec (totals, 'c');
 
 if ((length (BAD) == 1) & (BAD(1) == 'a'))
 
@@ -98,21 +98,21 @@ if ((length (BAD) == 1) & (BAD(1) == 'a'))
   fprintf (hline);
 
   S.type = '()';
-  blank = spaces (d+8);
+  blank = fca.apps.spaces (d+8);
 
   for i = 1 : n-1
     for j = 2 : m
       S.subs = {i,j};
       val = 0; 
       if i < j 
-        fprintf ( formatstring ( subsref (PM, S) / divby , d+8, d));
+        fprintf ( fca.apps.formatstring ( subsref (PM, S) / divby , d+8, d));
       else
         fprintf (blank);
       end;
       fprintf (' & ');
     end;
 %    if rowtotal
-%      fprintf ( formatstring ( rowtotals (i) / divby, d+8, d) );
+%      fprintf ( fca.apps.formatstring ( rowtotals (i) / divby, d+8, d) );
 %    end;
     fprintf (phe{i});
     fprintf ('\\\\\n');
@@ -158,7 +158,7 @@ else
         fprintf (hline);
 
         S.type = '()';
-        blank = spaces (d+8);
+        blank = fca.apps.spaces (d+8);
 
         for i = 1 : n
         fprintf (phe{i});
@@ -166,8 +166,8 @@ else
         for j = 1 : m
           S.subs = {i,j};
           val = 0; 
-          if (findinvec (BAD, 'd') & i == j) | (findinvec (BAD, 'b') & i > j ) |  (findinvec (BAD, 'a') & i < j )
-            fprintf ( formatstring ( PM.mat(i,j)/divby , uint16(d+8), d));
+          if (fca.apps.findinvec (BAD, 'd') & i == j) | (fca.apps.findinvec (BAD, 'b') & i > j ) |  (fca.apps.findinvec (BAD, 'a') & i < j )
+            fprintf ( fca.apps.formatstring ( PM.mat(i,j)/divby , uint16(d+8), d));
           else
             fprintf (blank);
           end;
@@ -176,7 +176,7 @@ else
           end;
         end;
         if rowtotal
-          fprintf ( formatstring ( rowtotals (i) / divby, uint16(d+8), d) );
+          fprintf ( fca.apps.formatstring ( rowtotals (i) / divby, uint16(d+8), d) );
         end;
         fprintf ('\\\\\n');
 end;

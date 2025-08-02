@@ -28,9 +28,9 @@ M = pm.mat / (10^pm.dp);
 
 
 
-[B,A] = decimalplaces (M);
-maxbefore = fullmax (B);
-maxafter  = min (maxdp, fullmax (A));
+[B,A] = fca.apps.decimalplaces (M);
+maxbefore = fca.apps.fullmax (B);
+maxafter  = min (maxdp, fca.apps.fullmax (A));
 
 NCHAR = uint16(maxbefore + 1 + maxafter);
 if mod(NCHAR,2)==0 NCHAR=NCHAR+1; end
@@ -47,8 +47,8 @@ for i = 1:n
      else
         S.subs = {i,j};
 %        save test.mat
-    entries{i,j} = formatstring ( pm.mat(i,j) / (10^pm.dp) , NCHAR, maxafter);
-%	entries{i,j} = formatstring ( M(i,j)  , NCHAR, maxafter);
+    entries{i,j} = fca.apps.formatstring ( pm.mat(i,j) / (10^pm.dp) , NCHAR, maxafter);
+%	entries{i,j} = fca.apps.formatstring ( M(i,j)  , NCHAR, maxafter);
      end;
   end;
 end;      
@@ -77,10 +77,10 @@ else
   end;
  
   fprintf (1, '\n');
-  fprintf (1, '%s%s%s', init, formatstring(init, NCHAR),inbtwn);
-  %fprintf (1, '%s  ', formatstring(init, NCHAR));
+  fprintf (1, '%s%s%s', init, fca.apps.formatstring(init, NCHAR),inbtwn);
+  %fprintf (1, '%s  ', fca.apps.formatstring(init, NCHAR));
   for j = 1:m, 
-    fprintf (1, '%s%s', formatstring(pm.rlabelset{j}, NCHAR), inbtwn); 
+    fprintf (1, '%s%s', fca.apps.formatstring(pm.rlabelset{j}, NCHAR), inbtwn); 
   end;
   fprintf (1, '\n');
   
@@ -88,11 +88,11 @@ else
   % now print matrix...
 
   for i = 1 : n                       % for each row of the matrix
-    fprintf (1, '%s%s%s',init, formatstring(pm.elabelset{i},NCHAR),inbtwn);
+    fprintf (1, '%s%s%s',init, fca.apps.formatstring(pm.elabelset{i},NCHAR),inbtwn);
     for j = 1:m
       fprintf (1, '%s%s', entries{i,j},inbtwn);
     end;
-    fprintf (1, '%s%s\n',formatstring(pm.elabelset{i},NCHAR),inbtwn);
+    fprintf (1, '%s%s\n',fca.apps.formatstring(pm.elabelset{i},NCHAR),inbtwn);
   end;      
 end;
 

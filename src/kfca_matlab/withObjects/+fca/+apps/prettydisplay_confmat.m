@@ -54,14 +54,9 @@ map=colormap('gray');
 map=flipud(map);
 colormap(map)
 
-%imagesc(log2(pm.mat/sum(sum(pm.mat))))
 imagesc(pm.mat)
 set(gca,'YTick', [1:pm.nephones], 'XTick', [1:pm.nrphones], 'YTickLabel', pm.elabelset, 'XTickLabel', pm.rlabelset,  'XAxisLocation', 'top');
-%my_xticklabels(gca,[1:pm.nrphones],  pm.rlabelset, 'Rotation',90, 'VerticalAlignment','middle', 'HorizontalAlignment','left','FontSize',14);
-%my_yticklabels(gca,[1:pm.nephones],  pm.elabelset, 'HorizontalAlignment','center', 'VerticalAlignment','middle','FontSize',14);
-%[hx,hy] = format_ticks(gca, pm.rlabelset, pm.elabelset, [], [], 0, 90,0.05,'FontSize',14,'FontWeight','Normal','HorizontalAlignment','center', 'VerticalAlignment','middle');
-%[hx,hy] = format_ticks(gca, pm.rlabelset, pm.elabelset, [], [], 90, 0,0.05,'FontSize',8,'FontWeight','Normal','HorizontalAlignment','center', 'VerticalAlignment','middle');
-[hx,hy] = format_ticks(gca, pm.rlabelset, pm.elabelset, [], [], 90, 0,0.05,'FontSize',12,'FontWeight','Normal','HorizontalAlignment','left', 'VerticalAlignment','middle');
+[hx,hy] = fca.apps.format_ticks(gca, pm.rlabelset, pm.elabelset, [], [], 90, 0,0.05,'FontSize',12,'FontWeight','Normal','HorizontalAlignment','left', 'VerticalAlignment','middle');
 
 
 posy=max(get(gca,'YLim'))+1.0;

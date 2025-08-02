@@ -21,4 +21,3 @@ P-2,5-dimethyl_pyrazine
 P-2-methyl_pyrazine
 T-2-isobutylthiazole
 T-2,4,5-trimethylthiazole
-.

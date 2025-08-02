@@ -34,7 +34,7 @@ if nargin < 2
   sf = 6;
 end;
 
-N = numdim (M);
+N = fca.apps.numdim (M);
 
 if ~N
   before = 0;
@@ -66,7 +66,7 @@ else
     if 1 == N, indx = [indx ',1']; end;
     indx = ['(' indx ')'];
 
-    commandrqd = [ '[before' indx ', after' indx '] = decimalplaces (M'  indx ');'];
+    commandrqd = [ '[before' indx ', after' indx '] = fca.apps.decimalplaces (M'  indx ');'];
     eval (commandrqd);
   end;
 
@@ -82,7 +82,7 @@ function d = numDigitsInInteger (x)
 
 xx = num2str (x);
 n = length (xx);
-f = findinvec (xx, 'e');
+f = fca.apps.findinvec (xx, 'e');
 if f
   d = 1 + str2num ( xx(e+2:n) );
 else
@@ -104,7 +104,7 @@ function d = numDigitsInFraction (x,sf)
 if x==0, d = 0; return; end;
 
 xx = num2str (x);
-f = findinvec (xx, 'e');
+f = fca.apps.findinvec (xx, 'e');
 n = length (xx);
 
 % find a first, i.e. number of zeros after decimal point.
@@ -126,7 +126,7 @@ end;
 
 xx = num2str (10^a * x, sf);
 
-if findinvec (xx, 'e')
+if fca.apps.findinvec (xx, 'e')
  error ('weird');
 end;
 
