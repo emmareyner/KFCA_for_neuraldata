@@ -1,5 +1,0 @@
-24/07/09:
-	- make @confmat, @confvetctor subpackes depending on this package. Or at least provide an interface for them to be considered contexts.
-	- make documentation for each package.
-	- make use of another representation for sets in next closure and intersection lattice-building algorithms.
-	- make a stub function fca.mmp.Context.build_lattice, for lattice-building algorithm that defaults to next_closure.
